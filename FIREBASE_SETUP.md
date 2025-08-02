@@ -69,18 +69,26 @@ flutter build apk --debug
 4. Copy the Firebase configuration object
 
 #### 2. Update Firebase Options
-Replace the placeholder values in `lib/firebase_options.dart` with your actual Firebase config:
+**IMPORTANT**: The `firebase_options.dart` file is now gitignored for security.
 
-```dart
-static const FirebaseOptions web = FirebaseOptions(
-  apiKey: 'your-actual-web-api-key',
-  appId: 'your-actual-web-app-id',
-  messagingSenderId: 'your-actual-sender-id',
-  projectId: 'your-actual-project-id',
-  authDomain: 'your-project-id.firebaseapp.com',
-  storageBucket: 'your-project-id.appspot.com',
-);
-```
+1. Copy the template file:
+   ```bash
+   cp neo_chat/lib/firebase_options.dart.template neo_chat/lib/firebase_options.dart
+   ```
+
+2. Replace the placeholder values in `lib/firebase_options.dart` with your actual Firebase config:
+   ```dart
+   static const FirebaseOptions web = FirebaseOptions(
+     apiKey: 'your-actual-web-api-key',
+     appId: 'your-actual-web-app-id',
+     messagingSenderId: 'your-actual-sender-id',
+     projectId: 'your-actual-project-id',
+     authDomain: 'your-project-id.firebaseapp.com',
+     storageBucket: 'your-project-id.appspot.com',
+   );
+   ```
+
+3. **Never commit this file to git** - it contains sensitive API keys!
 
 ### iOS Setup (Future)
 
@@ -148,6 +156,20 @@ flutter run
 3. Check your email for reset link
 
 ## 🔐 Security Configuration
+
+### ⚠️ CRITICAL: API Key Security
+**NEVER commit Firebase configuration files to public repositories!**
+
+The following files contain sensitive API keys and are now gitignored:
+- `lib/firebase_options.dart`
+- `android/app/google-services.json`
+- `ios/Runner/GoogleService-Info.plist`
+
+### API Key Management
+1. **Keep API keys private**: Never share or commit them to version control
+2. **Use environment variables**: For production, consider using environment variables
+3. **Rotate keys regularly**: Generate new keys periodically for security
+4. **Monitor usage**: Check Firebase Console for unusual API usage
 
 ### Firebase Security Rules
 Update your Firestore security rules (when implementing chat):
