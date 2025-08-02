@@ -95,6 +95,32 @@ class ChatMessage {
     );
   }
 
+  // Convert to Firestore document
+  Map<String, dynamic> toFirestore() {
+    return {
+      'content': content,
+      'type': type.name,
+      'timestamp': timestamp,
+      'isLoading': isLoading,
+      'error': error,
+    };
+  }
+
+  // Create from Firestore document
+  factory ChatMessage.fromFirestore(Map<String, dynamic> data, String documentId) {
+    return ChatMessage(
+      id: documentId,
+      content: data['content'] ?? '',
+      type: MessageType.values.firstWhere(
+        (e) => e.name == data['type'],
+        orElse: () => MessageType.user,
+      ),
+      timestamp: data['timestamp']?.toDate() ?? DateTime.now(),
+      isLoading: data['isLoading'] ?? false,
+      error: data['error'],
+    );
+  }
+
   @override
   String toString() {
     return 'ChatMessage(id: $id, content: $content, type: $type, timestamp: $timestamp, isLoading: $isLoading, error: $error)';

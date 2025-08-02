@@ -19,6 +19,11 @@ class OpenRouterService {
     int? maxTokens,
   }) async {
     try {
+      // Debug: Print API configuration
+      print('🔑 API Key: ${ApiConfig.openRouterApiKey.substring(0, 20)}...');
+      print('🌐 API URL: ${ApiConfig.chatCompletionsUrl}');
+      print('📋 Headers: ${ApiConfig.headers}');
+
       // Prepare the request body
       final requestBody = {
         'model': model ?? ApiConfig.defaultModel,
@@ -29,6 +34,8 @@ class OpenRouterService {
         'temperature': temperature ?? ApiConfig.temperature,
         'max_tokens': maxTokens ?? ApiConfig.maxTokens,
       };
+
+      print('📤 Request Body: ${jsonEncode(requestBody)}');
 
       // Make the API request
       final response = await _client
@@ -42,11 +49,14 @@ class OpenRouterService {
           );
 
       // Handle the response
+      print('📥 Response Status: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        
+
         // Extract the message content from the response
-        if (responseData['choices'] != null && 
+        if (responseData['choices'] != null &&
             responseData['choices'].isNotEmpty) {
           final choice = responseData['choices'][0];
           final message = choice['message'];
@@ -57,8 +67,9 @@ class OpenRouterService {
       } else {
         // Handle API errors
         final errorData = jsonDecode(response.body);
-        final errorMessage = errorData['error']?['message'] ?? 
+        final errorMessage = errorData['error']?['message'] ??
                            'API request failed with status ${response.statusCode}';
+        print('❌ API Error: $errorMessage');
         throw errorMessage;
       }
     } on SocketException {
