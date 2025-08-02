@@ -1,7 +1,19 @@
+/// API Configuration Template
+/// 
+/// IMPORTANT: This is a template file. Copy this to api_config.dart
+/// and replace the placeholder values with your actual API keys.
+/// 
+/// To set up your API configuration:
+/// 1. Copy this file to api_config.dart
+/// 2. Replace 'your-openrouter-api-key-here' with your actual OpenRouter API key
+/// 3. Never commit api_config.dart to version control
+/// 
+/// The api_config.dart file is gitignored for security reasons.
+
 class ApiConfig {
   // OpenRouter API Configuration
   static const String openRouterBaseUrl = 'https://openrouter.ai/api/v1';
-  static const String openRouterApiKey = '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';
+  static const String openRouterApiKey = 'your-openrouter-api-key-here';
   
   // Default model to use
   static const String defaultModel = 'deepseek/deepseek-r1-0528:free';

@@ -45,9 +45,20 @@
    ```
 
 3. **Configure API Keys**
+   ```bash
+   # Run the setup script (Windows)
+   setup_api_config.bat
+
+   # Or run the setup script (Linux/Mac)
+   chmod +x setup_api_config.sh
+   ./setup_api_config.sh
+
+   # Or manually:
+   cp lib/config/api_config.dart.template lib/config/api_config.dart
+   ```
    - Copy `lib/firebase_options.dart.template` to `lib/firebase_options.dart`
    - Update Firebase configuration with your project settings
-   - Update OpenRouter API key in `lib/config/api_config.dart`
+   - **IMPORTANT**: Edit `lib/config/api_config.dart` and replace `'your-openrouter-api-key-here'` with your actual OpenRouter API key
 
 4. **Run the application**
    ```bash
@@ -153,11 +164,20 @@ NeoChat currently supports OpenRouter API with plans for multiple AI providers:
 ## 🔐 Security Features
 
 - Firebase Authentication with email/password and Google Sign-In
-- Secure API key management for OpenRouter integration
+- **Secure API key management** - API keys are gitignored and use template system
 - Firebase security rules (to be implemented)
 - User authentication and authorization
 - Input validation and sanitization
 - Error handling without exposing sensitive information
+
+### 🚨 Security Notice
+
+**NEVER commit API keys to version control!**
+
+- `lib/config/api_config.dart` is gitignored for security
+- Use the template system to set up your API keys locally
+- API keys should be kept private and rotated regularly
+- For production, use environment variables or secure key management services
 
 ## 🎨 Design System
 

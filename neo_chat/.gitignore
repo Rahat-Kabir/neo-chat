@@ -48,3 +48,9 @@ app.*.map.json
 lib/firebase_options.dart
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
+
+# API configuration files (contains sensitive API keys)
+lib/config/api_config.dart
+.env
+.env.local
+.env.production
