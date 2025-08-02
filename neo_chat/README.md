@@ -6,18 +6,20 @@
 
 ### 🎨 Core Features
 - **Splash Screen** ✅ - Customizable animated splash screen with branding
-- **User Authentication** 🔄 - Firebase Auth with email/password and Google Sign-In
+- **User Authentication** ✅ - Firebase Auth with email/password and Google Sign-In
+- **AI Chat Integration** ✅ - OpenRouter API integration with DeepSeek R1 model
+- **Modern Chat UI** ✅ - Material Design 3 chat interface with message bubbles
 - **Real-time Chat** 🔄 - One-to-one and group messaging with Firebase
-- **AI Integration** 🔄 - Support for OpenRouter, OpenAI, and Anthropic APIs
 - **Settings Module** 🔄 - Profile management, themes, and AI model selection
 - **Push Notifications** 🔄 - Firebase Cloud Messaging integration
 
 ### 🛠️ Technical Features
 - **Material Design 3** - Modern UI with light/dark theme support
 - **Responsive Design** - Optimized for all screen sizes
-- **State Management** - Efficient state handling
+- **State Management** - Provider pattern for efficient state handling
 - **Secure Authentication** - Firebase Auth integration
-- **Real-time Database** - Firebase Firestore for instant messaging
+- **API Integration** - HTTP client for OpenRouter API communication
+- **Error Handling** - Comprehensive error handling with retry functionality
 - **Cross-platform** - iOS, Android, Web, and Desktop support
 
 ## 🚀 Getting Started
@@ -27,6 +29,7 @@
 - Dart SDK
 - Android Studio / VS Code
 - Firebase account (for backend services)
+- OpenRouter API key (for AI chat functionality)
 
 ### Installation
 
@@ -41,10 +44,39 @@
    flutter pub get
    ```
 
-3. **Run the application**
+3. **Configure API Keys**
+   - Copy `lib/firebase_options.dart.template` to `lib/firebase_options.dart`
+   - Update Firebase configuration with your project settings
+   - Update OpenRouter API key in `lib/config/api_config.dart`
+
+4. **Run the application**
    ```bash
-   flutter run
+   # For web
+   flutter run -d chrome
+
+   # For Android emulator
+   flutter run -d emulator-5554
+
+   # For Windows desktop
+   flutter run -d windows
    ```
+
+## 🧪 Testing
+
+### Tested Platforms
+- ✅ **Web (Chrome)** - Fully functional
+- ✅ **Android Emulator** - Fully functional
+- 🔄 **Windows Desktop** - Basic functionality
+- 🔄 **iOS** - Not yet tested
+
+### How to Test Chat Functionality
+1. Launch the app on your preferred platform
+2. Complete authentication (sign up or sign in)
+3. Click "Start Chatting" on the home screen
+4. Type a message and press send
+5. Wait for AI response from OpenRouter API
+6. Test error handling by disconnecting internet
+7. Test retry functionality when errors occur
 
 ## 📱 Screenshots
 
@@ -54,55 +86,78 @@
 
 ```
 lib/
-├── main.dart                 # App entry point
+├── main.dart                 # App entry point with Provider setup
+├── config/                   # Configuration files
+│   └── api_config.dart      # ✅ OpenRouter API configuration
+├── models/                   # Data models
+│   └── chat_message.dart    # ✅ Chat message model
+├── providers/                # State management
+│   └── chat_provider.dart   # ✅ Chat state management
 ├── screens/                  # UI screens
 │   ├── splash_screen.dart   # ✅ Animated splash screen
-│   ├── home_screen.dart     # ✅ Temporary home screen
-│   ├── auth/                # 🔄 Authentication screens
-│   ├── chat/                # 🔄 Chat-related screens
-│   └── settings/            # 🔄 Settings screens
-├── widgets/                 # 🔄 Reusable UI components
-├── services/                # 🔄 Backend services
-├── models/                  # 🔄 Data models
-└── utils/                   # 🔄 Utility functions
+│   ├── home_screen.dart     # ✅ Home screen with chat navigation
+│   ├── auth/                # ✅ Authentication screens
+│   └── chat/                # ✅ Chat-related screens
+│       └── chat_screen.dart # ✅ Main chat interface
+├── services/                 # Backend services
+│   ├── auth_service.dart    # ✅ Firebase authentication
+│   └── openrouter_service.dart # ✅ OpenRouter API service
+├── widgets/                  # Reusable UI components
+│   └── message_bubble.dart  # ✅ Chat message bubble widget
+└── utils/                    # 🔄 Utility functions
 ```
 
 ## 🔧 Development Progress
 
-### ✅ Completed
+### ✅ Completed (Phase 3)
 - [x] Project setup and structure
 - [x] Splash screen with animations
 - [x] Material Design 3 theming
-- [x] Basic navigation structure
+- [x] Firebase Authentication system
+- [x] User registration and login screens
+- [x] OpenRouter API integration
+- [x] AI chat functionality with DeepSeek R1 model
+- [x] Modern chat interface with message bubbles
+- [x] State management with Provider pattern
+- [x] Error handling and retry functionality
+- [x] Cross-platform support (Web & Android tested)
 
 ### 🔄 In Progress
-- [ ] Firebase Authentication setup
-- [ ] User registration and login screens
-- [ ] Chat interface design
-- [ ] AI integration setup
+- [ ] Real-time messaging with Firebase Firestore
+- [ ] Message persistence and history
 
-### 📋 Planned
-- [ ] Real-time messaging
+### 📋 Planned (Phase 4+)
 - [ ] Group chat functionality
 - [ ] Push notifications
 - [ ] Settings and profile management
-- [ ] AI model selection
-- [ ] Media sharing
+- [ ] AI model selection interface
+- [ ] Media sharing (images, files)
 - [ ] Message encryption
+- [ ] Voice messages
+- [ ] Chat themes and customization
 
 ## 🤖 AI Integration
 
-NeoChat will support multiple AI providers:
-- **OpenAI** - GPT models for conversational AI
-- **Anthropic** - Claude models for advanced reasoning
-- **OpenRouter** - Access to multiple AI models through one API
+NeoChat currently supports OpenRouter API with plans for multiple AI providers:
+- **OpenRouter** ✅ - Currently integrated with DeepSeek R1 model (free tier)
+- **OpenAI** 🔄 - GPT models for conversational AI (planned)
+- **Anthropic** 🔄 - Claude models for advanced reasoning (planned)
+
+### Current AI Features:
+- Real-time AI chat responses
+- Error handling with retry functionality
+- Configurable model selection
+- Message history context
+- Copy-to-clipboard functionality
 
 ## 🔐 Security Features
 
-- End-to-end encryption for messages
-- Secure API key management
-- Firebase security rules
+- Firebase Authentication with email/password and Google Sign-In
+- Secure API key management for OpenRouter integration
+- Firebase security rules (to be implemented)
 - User authentication and authorization
+- Input validation and sanitization
+- Error handling without exposing sensitive information
 
 ## 🎨 Design System
 
@@ -118,14 +173,20 @@ NeoChat will support multiple AI providers:
 - `flutter` - UI framework
 - `cupertino_icons` - iOS-style icons
 
+### Current Dependencies
+- `firebase_core` ✅ - Firebase initialization
+- `firebase_auth` ✅ - Authentication
+- `google_sign_in` ✅ - Google Sign-In integration
+- `http` ✅ - API requests for AI integration
+- `provider` ✅ - State management
+- `nested` ✅ - Provider dependency
+
 ### Planned Dependencies
-- `firebase_core` - Firebase initialization
-- `firebase_auth` - Authentication
 - `cloud_firestore` - Real-time database
 - `firebase_messaging` - Push notifications
-- `http` - API requests for AI integration
 - `shared_preferences` - Local storage
-- `provider` - State management
+- `image_picker` - Media sharing
+- `file_picker` - File attachments
 
 ## 🤝 Contributing
 
