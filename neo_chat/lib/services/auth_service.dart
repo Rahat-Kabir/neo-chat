@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'user_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final UserService _userService = UserService();
 
   // Get current user
   User? get currentUser => _auth.currentUser;
@@ -19,6 +21,12 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      // Initialize user profile
+      if (result.user != null) {
+        await _userService.initializeUserProfile(result.user!);
+      }
+
       return result;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -37,6 +45,12 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      // Initialize user profile for new user
+      if (result.user != null) {
+        await _userService.initializeUserProfile(result.user!);
+      }
+
       return result;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -54,7 +68,14 @@ class AuthService {
       googleProvider.addScope('profile');
 
       // Sign in with popup for web
-      return await _auth.signInWithPopup(googleProvider);
+      UserCredential result = await _auth.signInWithPopup(googleProvider);
+
+      // Initialize user profile
+      if (result.user != null) {
+        await _userService.initializeUserProfile(result.user!);
+      }
+
+      return result;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {

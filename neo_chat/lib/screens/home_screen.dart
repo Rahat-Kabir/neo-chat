@@ -61,8 +61,10 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // User Welcome Section
@@ -189,8 +191,14 @@ class HomeScreen extends StatelessWidget {
                 completed: true,
               ),
               const _FeatureItem(
-                icon: Icons.chat,
-                title: 'Real-time Chat',
+                icon: Icons.check_circle,
+                title: 'Firestore Database ✅',
+                completed: true,
+              ),
+              const _FeatureItem(
+                icon: Icons.check_circle,
+                title: 'Chat History Storage ✅',
+                completed: true,
               ),
               const _FeatureItem(
                 icon: Icons.settings,
