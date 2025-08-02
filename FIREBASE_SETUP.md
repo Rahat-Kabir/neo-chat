@@ -17,6 +17,13 @@ This guide will help you set up Firebase Authentication for the NeoChat applicat
    - **Email/Password**: Click and toggle "Enable"
    - **Google**: Click, toggle "Enable", and add your project support email
 
+### 3. Enable Firestore Database
+1. In your Firebase project, go to **Firestore Database**
+2. Click "Create database"
+3. Choose "Start in test mode" (we'll update rules later)
+4. Select a location for your database (choose closest to your users)
+5. Click "Done"
+
 ## 📱 Platform Configuration
 
 ### Android Setup
@@ -114,6 +121,11 @@ flutter build apk --debug
 - [x] Error handling
 - [x] Loading states
 - [x] Responsive UI design
+- [x] Firestore Database integration
+- [x] Real-time chat message storage
+- [x] User profile management
+- [x] Chat history persistence
+- [x] AI chat integration with OpenRouter
 
 ### 🔄 Authentication Screens
 - [x] **Login Screen**: Email/password login with Google Sign-In option
@@ -172,24 +184,46 @@ The following files contain sensitive API keys and are now gitignored:
 4. **Monitor usage**: Check Firebase Console for unusual API usage
 
 ### Firebase Security Rules
-Update your Firestore security rules (when implementing chat):
+**IMPORTANT**: Update your Firestore security rules to secure user data.
+
+1. Go to **Firestore Database** > **Rules** in Firebase Console
+2. Replace the default rules with the content from `firestore.rules` file:
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can read and write their own data
+    // Users can read and write their own user profile
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Chat messages (implement later)
+
+    // Chat conversations - users can only access their own chats
     match /chats/{chatId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if request.auth != null && request.auth.uid == chatId;
+
+      // Messages within a chat - users can only access messages in their own chats
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null && request.auth.uid == chatId;
+      }
+    }
+
+    // User settings and preferences
+    match /userSettings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Chat metadata and statistics
+    match /chatMetadata/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
 ```
+
+3. Click **Publish** to apply the rules
+
+> **Note**: These rules ensure that users can only access their own data. Each user's chat messages are stored in a subcollection under their user ID, providing complete data isolation.
 
 ## 📝 Next Steps
 
@@ -197,15 +231,17 @@ service cloud.firestore {
    - Add your actual Firebase config values to `firebase_options.dart`
    - Generate and add SHA-1 key to Firebase Console
 
-2. **Test Authentication**:
+2. **Deploy Firestore Security Rules**:
+   - Copy the rules from `firestore.rules` to Firebase Console
+   - Test that users can only access their own data
+
+3. **Test the Complete Application**:
    - Test email/password registration and login
    - Test Google Sign-In (after adding SHA-1)
    - Test password reset functionality
-
-3. **Implement Chat Features**:
-   - Set up Firestore for real-time messaging
-   - Create chat interface
-   - Add AI integration
+   - Test AI chat functionality
+   - Verify chat history persistence
+   - Test real-time message synchronization
 
 ## 🆘 Troubleshooting
 
