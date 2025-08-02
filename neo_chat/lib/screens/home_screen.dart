@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import 'chat/chat_screen.dart';
+import 'chat/public_chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -151,62 +152,99 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
 
-              // Start Chat Button
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ChatScreen()),
-                  );
-                },
-                icon: const Icon(Icons.chat),
-                label: const Text('Start Chatting'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
+              // Public Chat Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PublicChatScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.public),
+                  label: const Text('Join Public Chat'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // AI Chat Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ChatScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.smart_toy),
+                  label: const Text('Chat with AI'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
 
               const SizedBox(height: 40),
-              const Text(
-                'Features:',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+
+              // App Info Section
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 20),
-              const _FeatureItem(
-                icon: Icons.check_circle,
-                title: 'User Authentication ✅',
-                completed: true,
-              ),
-              const _FeatureItem(
-                icon: Icons.check_circle,
-                title: 'AI Chat Integration ✅',
-                completed: true,
-              ),
-              const _FeatureItem(
-                icon: Icons.check_circle,
-                title: 'Firestore Database ✅',
-                completed: true,
-              ),
-              const _FeatureItem(
-                icon: Icons.check_circle,
-                title: 'Chat History Storage ✅',
-                completed: true,
-              ),
-              const _FeatureItem(
-                icon: Icons.settings,
-                title: 'Customizable Settings',
-              ),
-              const _FeatureItem(
-                icon: Icons.notifications,
-                title: 'Push Notifications',
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.security,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Secure & Private',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Your conversations are protected with Firebase security and end-to-end encryption.',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -216,38 +254,4 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _FeatureItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final bool completed;
 
-  const _FeatureItem({
-    required this.icon,
-    required this.title,
-    this.completed = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 20,
-            color: completed
-                ? Colors.green
-                : Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
-}

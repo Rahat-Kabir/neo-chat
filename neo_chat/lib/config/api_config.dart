@@ -13,7 +13,7 @@
 class ApiConfig {
   // OpenRouter API Configuration
   static const String openRouterBaseUrl = 'https://openrouter.ai/api/v1';
-  static const String openRouterApiKey = 'your-openrouter-api-key-here';
+  static const String openRouterApiKey = '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';
   
   // Default model to use
   static const String defaultModel = 'deepseek/deepseek-r1-0528:free';
