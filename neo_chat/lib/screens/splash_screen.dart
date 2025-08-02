@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home_screen.dart';
+import 'auth/auth_wrapper.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -57,13 +57,12 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToNextScreen() {
-    // TODO: Check authentication state here
-    // For now, navigate to home screen
+    // Navigate to AuthWrapper which handles authentication state
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const HomeScreen(),
+              const AuthWrapper(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },

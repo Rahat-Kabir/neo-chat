@@ -1,16 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final authService = AuthService();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('NeoChat'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'signout') {
+                try {
+                  await authService.signOut();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error signing out: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'signout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout),
+                    SizedBox(width: 8),
+                    Text('Sign Out'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -23,57 +60,119 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              // User Welcome Section
+              Container(
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      child: user?.photoURL != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(40),
+                              child: Image.network(
+                                user!.photoURL!,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.person,
+                                    size: 40,
+                                    color: Colors.white,
+                                  );
+                                },
+                              ),
+                            )
+                          : const Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      'Welcome back!',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      user?.displayName ?? user?.email ?? 'User',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Icon(
                 Icons.chat_bubble_outline,
                 size: 80,
                 color: Color(0xFF6C63FF),
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 'Welcome to NeoChat!',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'Your AI-powered chat companion',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
                 ),
               ),
-              SizedBox(height: 40),
-              Text(
+              const SizedBox(height: 40),
+              const Text(
                 'Coming Soon:',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: 20),
-              _FeatureItem(
-                icon: Icons.person_add,
-                title: 'User Authentication',
+              const SizedBox(height: 20),
+              const _FeatureItem(
+                icon: Icons.check_circle,
+                title: 'User Authentication ✅',
+                completed: true,
               ),
-              _FeatureItem(
+              const _FeatureItem(
                 icon: Icons.chat,
                 title: 'Real-time Chat',
               ),
-              _FeatureItem(
+              const _FeatureItem(
                 icon: Icons.smart_toy,
                 title: 'AI Integration',
               ),
-              _FeatureItem(
+              const _FeatureItem(
                 icon: Icons.settings,
                 title: 'Customizable Settings',
               ),
-              _FeatureItem(
+              const _FeatureItem(
                 icon: Icons.notifications,
                 title: 'Push Notifications',
               ),
@@ -88,10 +187,12 @@ class HomeScreen extends StatelessWidget {
 class _FeatureItem extends StatelessWidget {
   final IconData icon;
   final String title;
+  final bool completed;
 
   const _FeatureItem({
     required this.icon,
     required this.title,
+    this.completed = false,
   });
 
   @override
@@ -104,7 +205,9 @@ class _FeatureItem extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: Theme.of(context).colorScheme.primary,
+            color: completed
+                ? Colors.green
+                : Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(width: 10),
           Text(
