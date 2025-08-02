@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import 'chat/chat_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -147,8 +148,30 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
+
+              // Start Chat Button
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ChatScreen()),
+                  );
+                },
+                icon: const Icon(Icons.chat),
+                label: const Text('Start Chatting'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 40),
               const Text(
-                'Coming Soon:',
+                'Features:',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -161,12 +184,13 @@ class HomeScreen extends StatelessWidget {
                 completed: true,
               ),
               const _FeatureItem(
-                icon: Icons.chat,
-                title: 'Real-time Chat',
+                icon: Icons.check_circle,
+                title: 'AI Chat Integration ✅',
+                completed: true,
               ),
               const _FeatureItem(
-                icon: Icons.smart_toy,
-                title: 'AI Integration',
+                icon: Icons.chat,
+                title: 'Real-time Chat',
               ),
               const _FeatureItem(
                 icon: Icons.settings,
