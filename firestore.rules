@@ -6,30 +6,46 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // Chat conversations - users can only access their own chats
     match /chats/{chatId} {
       allow read, write: if request.auth != null && request.auth.uid == chatId;
-      
+
       // Messages within a chat - users can only access messages in their own chats
       match /messages/{messageId} {
         allow read, write: if request.auth != null && request.auth.uid == chatId;
       }
     }
-    
+
     // Alternative structure: Global messages collection with user filtering
     match /messages/{messageId} {
-      allow read, write: if request.auth != null && 
+      allow read, write: if request.auth != null &&
         request.auth.uid == resource.data.userId;
-      allow create: if request.auth != null && 
+      allow create: if request.auth != null &&
         request.auth.uid == request.resource.data.userId;
     }
-    
+
+    // Public chat rooms - all authenticated users can read and write
+    match /publicRooms/{roomId} {
+      allow read, write: if request.auth != null;
+
+      // Messages within public rooms - all authenticated users can read and write
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null &&
+          (request.auth.uid == request.resource.data.userId ||
+           request.resource.data.type == 'assistant');
+        allow create: if request.auth != null &&
+          (request.auth.uid == request.resource.data.userId ||
+           request.resource.data.type == 'assistant');
+      }
+    }
+
     // User settings and preferences
     match /userSettings/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // Chat metadata and statistics (optional)
     match /chatMetadata/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
