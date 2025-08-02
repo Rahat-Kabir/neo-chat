@@ -1,4 +1,4 @@
-package com.example.neo_chat
+package com.rahat.neochat
 
 import io.flutter.embedding.android.FlutterActivity
 
