@@ -104,4 +104,17 @@ coverage/
 
 # API Keys (security)
 **/lib/config/api_keys.dart
+**/lib/config/api_config.dart
 **/assets/config/
+
+# Planning and temporary files
+requirements.md
+CHANGELOG.md
+SECURITY_NOTICE.md
+FIRESTORE_IMPLEMENTATION.md
+**/report.txt
+tatus
+
+# Development tools
+.claude/
+**/.claude/

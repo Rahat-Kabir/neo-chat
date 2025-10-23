@@ -1,231 +1,316 @@
-# NeoChat 🚀
+# NeoChat - Flutter Application
 
-**NeoChat** is an AI-powered chat application built with Flutter that combines real-time messaging with intelligent AI conversations. Experience the future of communication with seamless integration of multiple AI models and modern chat features.
+AI-powered cross-platform chat application with real-time messaging and multi-model AI integration.
 
-## ✨ Features
+## 🏗️ Architecture
 
-### 🎨 Core Features
-- **Splash Screen** ✅ - Customizable animated splash screen with branding
-- **User Authentication** ✅ - Firebase Auth with email/password and Google Sign-In
-- **AI Chat Integration** ✅ - OpenRouter API integration with DeepSeek R1 model
-- **Modern Chat UI** ✅ - Material Design 3 chat interface with message bubbles
-- **Real-time Chat** 🔄 - One-to-one and group messaging with Firebase
-- **Settings Module** 🔄 - Profile management, themes, and AI model selection
-- **Push Notifications** 🔄 - Firebase Cloud Messaging integration
-
-### 🛠️ Technical Features
-- **Material Design 3** - Modern UI with light/dark theme support
-- **Responsive Design** - Optimized for all screen sizes
-- **State Management** - Provider pattern for efficient state handling
-- **Secure Authentication** - Firebase Auth integration
-- **API Integration** - HTTP client for OpenRouter API communication
-- **Error Handling** - Comprehensive error handling with retry functionality
-- **Cross-platform** - iOS, Android, Web, and Desktop support
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Flutter SDK (>=3.8.1)
-- Dart SDK
-- Android Studio / VS Code
-- Firebase account (for backend services)
-- OpenRouter API key (for AI chat functionality)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd NeoChat/neo_chat
-   ```
-
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Configure API Keys**
-   ```bash
-   # Run the setup script (Windows)
-   setup_api_config.bat
-
-   # Or run the setup script (Linux/Mac)
-   chmod +x setup_api_config.sh
-   ./setup_api_config.sh
-
-   # Or manually:
-   cp lib/config/api_config.dart.template lib/config/api_config.dart
-   ```
-   - Copy `lib/firebase_options.dart.template` to `lib/firebase_options.dart`
-   - Update Firebase configuration with your project settings
-   - **IMPORTANT**: Edit `lib/config/api_config.dart` and replace `'your-openrouter-api-key-here'` with your actual OpenRouter API key
-
-4. **Run the application**
-   ```bash
-   # For web
-   flutter run -d chrome
-
-   # For Android emulator
-   flutter run -d emulator-5554
-
-   # For Windows desktop
-   flutter run -d windows
-   ```
-
-## 🧪 Testing
-
-### Tested Platforms
-- ✅ **Web (Chrome)** - Fully functional
-- ✅ **Android Emulator** - Fully functional
-- 🔄 **Windows Desktop** - Basic functionality
-- 🔄 **iOS** - Not yet tested
-
-### How to Test Chat Functionality
-1. Launch the app on your preferred platform
-2. Complete authentication (sign up or sign in)
-3. Click "Start Chatting" on the home screen
-4. Type a message and press send
-5. Wait for AI response from OpenRouter API
-6. Test error handling by disconnecting internet
-7. Test retry functionality when errors occur
-
-## 📱 Screenshots
-
-*Screenshots will be added as features are implemented*
-
-## 🏗️ Project Structure
+### Project Structure
 
 ```
 lib/
 ├── main.dart                 # App entry point with Provider setup
 ├── config/                   # Configuration files
-│   └── api_config.dart      # ✅ OpenRouter API configuration
+│   └── api_config.dart      # OpenRouter/OpenAI API configuration
 ├── models/                   # Data models
-│   └── chat_message.dart    # ✅ Chat message model
-├── providers/                # State management
-│   └── chat_provider.dart   # ✅ Chat state management
+│   └── chat_message.dart    # Chat message model with Firestore serialization
+├── providers/                # State management (Provider pattern)
+│   └── chat_provider.dart   # Chat state and AI integration
 ├── screens/                  # UI screens
-│   ├── splash_screen.dart   # ✅ Animated splash screen
-│   ├── home_screen.dart     # ✅ Home screen with chat navigation
-│   ├── auth/                # ✅ Authentication screens
-│   └── chat/                # ✅ Chat-related screens
-│       └── chat_screen.dart # ✅ Main chat interface
+│   ├── splash_screen.dart   # Animated splash screen
+│   ├── home_screen.dart     # Main navigation hub
+│   ├── auth/                # Authentication screens
+│   │   ├── auth_wrapper.dart
+│   │   ├── login_screen.dart
+│   │   └── register_screen.dart
+│   └── chat/                # Chat interfaces
+│       ├── chat_screen.dart
+│       └── group_chat_screen.dart
 ├── services/                 # Backend services
-│   ├── auth_service.dart    # ✅ Firebase authentication
-│   └── openrouter_service.dart # ✅ OpenRouter API service
+│   ├── auth_service.dart    # Firebase Authentication
+│   ├── firestore_service.dart # Firestore database operations
+│   ├── user_service.dart    # User profile management
+│   ├── openrouter_service.dart # OpenRouter API client
+│   ├── openai_service.dart  # OpenAI API client
+│   └── ai_service.dart      # AI service abstraction
 ├── widgets/                  # Reusable UI components
-│   └── message_bubble.dart  # ✅ Chat message bubble widget
-└── utils/                    # 🔄 Utility functions
+│   └── message_bubble.dart  # Chat message bubble widget
+└── utils/                    # Utility functions
 ```
 
-## 🔧 Development Progress
+## 🔧 Technical Stack
 
-### ✅ Completed (Phase 3)
-- [x] Project setup and structure
-- [x] Splash screen with animations
-- [x] Material Design 3 theming
-- [x] Firebase Authentication system
-- [x] User registration and login screens
-- [x] OpenRouter API integration
-- [x] AI chat functionality with DeepSeek R1 model
-- [x] Modern chat interface with message bubbles
-- [x] State management with Provider pattern
-- [x] Error handling and retry functionality
-- [x] Cross-platform support (Web & Android tested)
+### Core Technologies
+- **Flutter** (>=3.8.1) - Cross-platform UI framework
+- **Dart** - Programming language
+- **Material Design 3** - UI design system
 
-### 🔄 In Progress
-- [ ] Real-time messaging with Firebase Firestore
-- [ ] Message persistence and history
+### State Management
+- **Provider** - Reactive state management
+- **Nested** - Provider dependency management
 
-### 📋 Planned (Phase 4+)
-- [ ] Group chat functionality
-- [ ] Push notifications
-- [ ] Settings and profile management
-- [ ] AI model selection interface
-- [ ] Media sharing (images, files)
-- [ ] Message encryption
-- [ ] Voice messages
-- [ ] Chat themes and customization
+### Backend Services
+- **Firebase Core** - Firebase initialization
+- **Firebase Auth** - User authentication
+- **Cloud Firestore** - Real-time database
+- **Google Sign-In** - OAuth authentication
 
-## 🤖 AI Integration
+### Network & APIs
+- **HTTP** - API requests for AI services
+- **OpenRouter API** - Multi-model AI access
+- **OpenAI API** - GPT models
 
-NeoChat currently supports OpenRouter API with plans for multiple AI providers:
-- **OpenRouter** ✅ - Currently integrated with DeepSeek R1 model (free tier)
-- **OpenAI** 🔄 - GPT models for conversational AI (planned)
-- **Anthropic** 🔄 - Claude models for advanced reasoning (planned)
+## 🚀 Setup Instructions
 
-### Current AI Features:
-- Real-time AI chat responses
-- Error handling with retry functionality
-- Configurable model selection
-- Message history context
-- Copy-to-clipboard functionality
+### 1. Prerequisites
+```bash
+flutter doctor  # Verify Flutter installation
+```
 
-## 🔐 Security Features
+### 2. Install Dependencies
+```bash
+flutter pub get
+```
 
-- Firebase Authentication with email/password and Google Sign-In
-- **Secure API key management** - API keys are gitignored and use template system
-- Firebase security rules (to be implemented)
-- User authentication and authorization
-- Input validation and sanitization
-- Error handling without exposing sensitive information
+### 3. Configure Firebase
 
-### 🚨 Security Notice
+**Copy Firebase template:**
+```bash
+cp lib/firebase_options.dart.template lib/firebase_options.dart
+```
 
-**NEVER commit API keys to version control!**
+**Update Firebase configuration:**
+- Get your Firebase config from Firebase Console
+- Replace placeholder values in `firebase_options.dart`
+- Configure for each platform (Android, iOS, Web)
 
-- `lib/config/api_config.dart` is gitignored for security
-- Use the template system to set up your API keys locally
-- API keys should be kept private and rotated regularly
-- For production, use environment variables or secure key management services
+**Setup platform-specific files:**
+- Android: `android/app/google-services.json`
+- iOS: `ios/Runner/GoogleService-Info.plist`
+- Web: Firebase config in `firebase_options.dart`
+
+See [FIREBASE_SETUP.md](../FIREBASE_SETUP.md) for detailed instructions.
+
+### 4. Configure API Keys
+
+**Run setup script:**
+```bash
+# Windows
+setup_api_config.bat
+
+# Linux/Mac
+chmod +x setup_api_config.sh
+./setup_api_config.sh
+```
+
+**Or manually:**
+```bash
+cp lib/config/api_config.dart.template lib/config/api_config.dart
+```
+
+**Edit `lib/config/api_config.dart`:**
+```dart
+class ApiConfig {
+  static const String openRouterApiKey = 'your-actual-api-key';
+  static const String openAiApiKey = 'your-actual-api-key';
+  // ...
+}
+```
+
+**⚠️ SECURITY WARNING:** Never commit API keys to version control!
+
+### 5. Deploy Firestore Rules
+```bash
+firebase deploy --only firestore:rules
+```
+
+### 6. Run Application
+
+```bash
+# Development
+flutter run
+
+# Specific platform
+flutter run -d chrome      # Web
+flutter run -d android     # Android
+flutter run -d ios         # iOS
+flutter run -d windows     # Windows Desktop
+
+# Release build
+flutter build apk          # Android APK
+flutter build ios          # iOS
+flutter build web          # Web
+```
+
+## ✨ Features
+
+### Implemented Features
+- **Splash Screen** - Animated splash with branding
+- **User Authentication** - Firebase Auth with email/password and Google Sign-In
+- **AI Chat** - OpenRouter and OpenAI integration
+- **Modern Chat UI** - Material Design 3 interface
+- **Real-time Messaging** - Firebase Firestore integration
+- **Group Chat** - Multi-user chat rooms
+- **Message Persistence** - Chat history storage
+- **Cross-platform** - iOS, Android, Web, Desktop
+
+### AI Integration
+- **OpenRouter** - DeepSeek R1 and other models
+- **OpenAI** - GPT-3.5 Turbo and GPT-4
+- Real-time streaming responses
+- Context-aware conversations
+- Multi-model selection
 
 ## 🎨 Design System
 
+### Theme
 - **Primary Color**: #6C63FF (Modern purple)
-- **Material Design 3** components
-- **Responsive layouts** for all devices
-- **Dark/Light theme** support
-- **Smooth animations** and transitions
+- **Material Design 3**: Dynamic color schemes
+- **Dark/Light Modes**: Automatic theme switching
+- **Custom Animations**: Smooth transitions
 
-## 📚 Dependencies
+### UI Components
+- Custom message bubbles
+- Animated splash screen
+- Responsive layouts
+- Loading states and error handling
 
-### Core Dependencies
-- `flutter` - UI framework
-- `cupertino_icons` - iOS-style icons
+## 🔐 Security
 
-### Current Dependencies
-- `firebase_core` ✅ - Firebase initialization
-- `firebase_auth` ✅ - Authentication
-- `google_sign_in` ✅ - Google Sign-In integration
-- `http` ✅ - API requests for AI integration
-- `provider` ✅ - State management
-- `nested` ✅ - Provider dependency
+### API Key Management
+- ✅ Template-based configuration
+- ✅ Gitignored sensitive files
+- ✅ Environment-based setup
+- ❌ Never commit real API keys
 
-### Planned Dependencies
-- `cloud_firestore` - Real-time database
-- `firebase_messaging` - Push notifications
-- `shared_preferences` - Local storage
-- `image_picker` - Media sharing
-- `file_picker` - File attachments
+### Firestore Security Rules
+```javascript
+// User data isolation
+match /users/{userId} {
+  allow read, write: if request.auth.uid == userId;
+}
+
+// Message privacy
+match /chats/{userId}/messages/{messageId} {
+  allow read, write: if request.auth.uid == userId;
+}
+```
+
+## 🧪 Development
+
+### Code Style
+- Follow [Effective Dart](https://dart.dev/guides/language/effective-dart) guidelines
+- Use meaningful variable/function names
+- Document public APIs
+- Keep files under 300 lines when possible
+
+### Testing
+```bash
+# Run all tests
+flutter test
+
+# Run with coverage
+flutter test --coverage
+```
+
+### Debugging
+```bash
+# Enable logging
+flutter run --debug
+
+# DevTools
+flutter pub global activate devtools
+flutter pub global run devtools
+```
+
+## 📦 Dependencies
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.14.0
+  google_sign_in: ^6.2.1
+
+  # State Management
+  provider: ^6.1.1
+  nested: ^1.0.0
+
+  # Networking
+  http: ^1.2.0
+```
+
+## 📱 Platform Support
+
+- ✅ Android (API 21+)
+- ✅ iOS (11+)
+- ✅ Web (Chrome, Safari, Firefox, Edge)
+- ✅ Windows (7+)
+- ✅ macOS (10.14+)
+- ✅ Linux
+
+## 🔨 Build & Deployment
+
+### Android
+```bash
+flutter build apk --release              # Release APK
+flutter build appbundle --release        # Play Store Bundle
+```
+
+### iOS
+```bash
+flutter build ios --release              # Release build
+```
+
+### Web
+```bash
+flutter build web --release              # Web build
+firebase deploy --only hosting           # Deploy to Firebase
+```
+
+### Desktop
+```bash
+flutter build windows --release          # Windows
+flutter build macos --release            # macOS
+flutter build linux --release            # Linux
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Firebase initialization error:**
+- Verify `firebase_options.dart` configuration
+- Check platform-specific config files
+- Run `flutterfire configure`
+
+**API connection errors:**
+- Verify API keys in `api_config.dart`
+- Check network connectivity
+- Verify API quotas
+
+**Build errors:**
+- Run `flutter clean`
+- Run `flutter pub get`
+- Check Flutter version compatibility
+
+## 📚 Additional Documentation
+
+- [Firebase Setup Guide](../FIREBASE_SETUP.md)
+- [Firestore Security Rules](../firestore.rules)
+- [Main Project README](../README.md)
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-For support and questions:
-- Create an issue on GitHub
-- Contact the development team
+1. Follow the existing code structure
+2. Write tests for new features
+3. Update documentation
+4. Keep commits atomic and descriptive
+5. Never commit sensitive data
 
 ---
 
-**NeoChat** - Where AI meets conversation 💬✨
+**Built with Flutter** 💙
