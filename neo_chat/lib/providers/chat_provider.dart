@@ -1,16 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import '../models/chat_message.dart';
-import '../services/openrouter_service.dart';
+import '../services/ai_service.dart';
 import '../services/firestore_service.dart';
+import '../config/api_config.dart';
 
 class ChatProvider extends ChangeNotifier {
-  final OpenRouterService _openRouterService = OpenRouterService();
+  final AIService _aiService = AIService();
   final FirestoreService _firestoreService = FirestoreService();
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
   String? _error;
-  String _currentModel = 'deepseek/deepseek-r1-0528:free';
+  ApiProvider _currentProvider = ApiConfig.defaultProvider;
+  String _currentModel = ApiConfig.defaultModel;
   StreamSubscription<List<ChatMessage>>? _messagesSubscription;
   bool _isInitialized = false;
 
@@ -18,6 +20,7 @@ class ChatProvider extends ChangeNotifier {
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isLoading => _isLoading;
   String? get error => _error;
+  ApiProvider get currentProvider => _currentProvider;
   String get currentModel => _currentModel;
   bool get hasMessages => _messages.isNotEmpty;
   bool get isInitialized => _isInitialized;
@@ -47,8 +50,14 @@ class ChatProvider extends ChangeNotifier {
       final userId = _firestoreService.currentUserId;
       if (userId != null) {
         final profile = await _firestoreService.getUserProfile(userId);
-        if (profile != null && profile['preferredModel'] != null) {
-          _currentModel = profile['preferredModel'];
+        if (profile != null) {
+          if (profile['preferredModel'] != null) {
+            _currentModel = profile['preferredModel'];
+          }
+          if (profile['preferredProvider'] != null) {
+            final providerString = profile['preferredProvider'] as String;
+            _currentProvider = providerString == 'openAI' ? ApiProvider.openAI : ApiProvider.openRouter;
+          }
         }
       }
     } catch (e) {
@@ -89,6 +98,50 @@ class ChatProvider extends ChangeNotifier {
     } catch (e) {
       // Don't show error to user for preference updates
       debugPrint('Failed to save preferred model: $e');
+    }
+  }
+
+  // Set current provider and save to Firestore
+  Future<void> setProvider(ApiProvider provider) async {
+    _currentProvider = provider;
+    // Set default model for the new provider
+    _currentModel = _aiService.getDefaultModel(provider);
+    notifyListeners();
+
+    try {
+      final providerString = provider == ApiProvider.openAI ? 'openAI' : 'openRouter';
+      // Update both provider and model
+      final userId = _firestoreService.currentUserId;
+      if (userId != null) {
+        await _firestoreService.updateUserProfile(userId, {
+          'preferredProvider': providerString,
+          'preferredModel': _currentModel,
+        });
+      }
+    } catch (e) {
+      // Don't show error to user for preference updates
+      debugPrint('Failed to save preferred provider: $e');
+    }
+  }
+
+  // Set both provider and model
+  Future<void> setProviderAndModel(ApiProvider provider, String model) async {
+    _currentProvider = provider;
+    _currentModel = model;
+    notifyListeners();
+
+    try {
+      final providerString = provider == ApiProvider.openAI ? 'openAI' : 'openRouter';
+      final userId = _firestoreService.currentUserId;
+      if (userId != null) {
+        await _firestoreService.updateUserProfile(userId, {
+          'preferredProvider': providerString,
+          'preferredModel': model,
+        });
+      }
+    } catch (e) {
+      // Don't show error to user for preference updates
+      debugPrint('Failed to save preferences: $e');
     }
   }
 
@@ -159,8 +212,9 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Get AI response
-      final response = await _openRouterService.sendMessage(
+      // Get AI response using the current provider
+      final response = await _aiService.sendMessage(
+        provider: _currentProvider,
         messages: _messages.where((msg) => !msg.isLoading).toList(),
         model: _currentModel,
       );
@@ -223,10 +277,10 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // Test API connection
+  // Test API connection for current provider
   Future<bool> testConnection() async {
     try {
-      return await _openRouterService.testConnection();
+      return await _aiService.testConnection(_currentProvider);
     } catch (e) {
       _error = e.toString();
       notifyListeners();
@@ -234,13 +288,31 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // Get available models
+  // Test API connection for specific provider
+  Future<bool> testConnectionForProvider(ApiProvider provider) async {
+    try {
+      return await _aiService.testConnection(provider);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Get available models for current provider
   Future<List<String>> getAvailableModels() async {
     try {
-      return await _openRouterService.getAvailableModels();
+      return await _aiService.getAvailableModels(_currentProvider);
     } catch (e) {
       _error = e.toString();
       notifyListeners();
+      return [];
+    }
+  }
+
+  // Get available models for specific provider
+  Future<List<String>> getAvailableModelsForProvider(ApiProvider provider) async {
+    try {
+      return await _aiService.getAvailableModels(provider);
+    } catch (e) {
       return [];
     }
   }
@@ -259,7 +331,7 @@ class ChatProvider extends ChangeNotifier {
   @override
   void dispose() {
     _messagesSubscription?.cancel();
-    _openRouterService.dispose();
+    _aiService.dispose();
     super.dispose();
   }
 }

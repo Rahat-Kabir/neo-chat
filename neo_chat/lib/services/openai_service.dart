@@ -4,14 +4,14 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/chat_message.dart';
 
-class OpenRouterService {
-  static final OpenRouterService _instance = OpenRouterService._internal();
-  factory OpenRouterService() => _instance;
-  OpenRouterService._internal();
+class OpenAIService {
+  static final OpenAIService _instance = OpenAIService._internal();
+  factory OpenAIService() => _instance;
+  OpenAIService._internal();
 
   final http.Client _client = http.Client();
 
-  /// Send a chat completion request to OpenRouter API
+  /// Send a chat completion request to OpenAI API
   Future<String> sendMessage({
     required List<ChatMessage> messages,
     String? model,
@@ -20,13 +20,13 @@ class OpenRouterService {
   }) async {
     try {
       // Debug: Print API configuration
-      print('🔑 API Key: ${ApiConfig.openRouterApiKey.substring(0, 20)}...');
-      print('🌐 API URL: ${ApiConfig.getChatCompletionsUrl(ApiProvider.openRouter)}');
-      print('📋 Headers: ${ApiConfig.getHeaders(ApiProvider.openRouter)}');
+      print('🔑 OpenAI API Key: ${ApiConfig.openAIApiKey.substring(0, 20)}...');
+      print('🌐 API URL: ${ApiConfig.getChatCompletionsUrl(ApiProvider.openAI)}');
+      print('📋 Headers: ${ApiConfig.getHeaders(ApiProvider.openAI)}');
 
       // Prepare the request body
       final requestBody = {
-        'model': model ?? ApiConfig.defaultModel,
+        'model': model ?? 'gpt-3.5-turbo',
         'messages': messages
             .where((msg) => !msg.isLoading && msg.error == null)
             .map((msg) => msg.toJson())
@@ -40,8 +40,8 @@ class OpenRouterService {
       // Make the API request
       final response = await _client
           .post(
-            Uri.parse(ApiConfig.getChatCompletionsUrl(ApiProvider.openRouter)),
-            headers: ApiConfig.getHeaders(ApiProvider.openRouter),
+            Uri.parse(ApiConfig.getChatCompletionsUrl(ApiProvider.openAI)),
+            headers: ApiConfig.getHeaders(ApiProvider.openAI),
             body: jsonEncode(requestBody),
           )
           .timeout(
@@ -69,7 +69,7 @@ class OpenRouterService {
         final errorData = jsonDecode(response.body);
         final errorMessage = errorData['error']?['message'] ??
                            'API request failed with status ${response.statusCode}';
-        print('❌ API Error: $errorMessage');
+        print('❌ OpenAI API Error: $errorMessage');
         throw errorMessage;
       }
     } on SocketException {
@@ -86,13 +86,13 @@ class OpenRouterService {
     }
   }
 
-  /// Get available models from OpenRouter
+  /// Get available models from OpenAI
   Future<List<String>> getAvailableModels() async {
     try {
       final response = await _client
           .get(
-            Uri.parse('${ApiConfig.openRouterBaseUrl}/models'),
-            headers: ApiConfig.getHeaders(ApiProvider.openRouter),
+            Uri.parse('${ApiConfig.openAIBaseUrl}/models'),
+            headers: ApiConfig.getHeaders(ApiProvider.openAI),
           )
           .timeout(
             Duration(seconds: ApiConfig.requestTimeoutSeconds),
@@ -107,7 +107,7 @@ class OpenRouterService {
       }
     } catch (e) {
       // Return default models if API call fails
-      return ApiConfig.openRouterModels.values.toList();
+      return ApiConfig.openAIModels.values.toList();
     }
   }
 

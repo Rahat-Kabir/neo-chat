@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
-import '../../models/chat_message.dart';
 import '../../widgets/message_bubble.dart';
+import '../../config/api_config.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -46,11 +46,135 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  void _toggleModel(ChatProvider chatProvider) {
+    final currentModel = chatProvider.currentModel;
+    final quickToggleModels = ApiConfig.getQuickToggleModelsForProvider(chatProvider.currentProvider);
+    final otherModel = quickToggleModels
+        .firstWhere((model) => model != currentModel);
+    chatProvider.setModel(otherModel);
+  }
+
+  String _getOtherModelName(String currentModel, ApiProvider currentProvider) {
+    final quickToggleModels = ApiConfig.getQuickToggleModelsForProvider(currentProvider);
+    final otherModel = quickToggleModels
+        .firstWhere((model) => model != currentModel);
+    return ApiConfig.getModelDisplayName(otherModel);
+  }
+
+  void _showProviderDialog(ChatProvider chatProvider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select AI Provider'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildProviderTile(ApiProvider.openRouter, chatProvider),
+            const SizedBox(height: 8),
+            _buildProviderTile(ApiProvider.openAI, chatProvider),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProviderTile(
+    ApiProvider provider,
+    ChatProvider chatProvider,
+  ) {
+    final isSelected = chatProvider.currentProvider == provider;
+    return ListTile(
+      leading: Icon(
+        provider == ApiProvider.openAI ? Icons.psychology : Icons.hub,
+        color: isSelected ? Theme.of(context).colorScheme.primary : null,
+      ),
+      title: Text(
+        ApiConfig.getProviderDisplayName(provider),
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: isSelected ? const Icon(Icons.check) : null,
+      onTap: () {
+        if (provider != chatProvider.currentProvider) {
+          chatProvider.setProvider(provider);
+        }
+        Navigator.pop(context);
+        _showModelDialog(chatProvider);
+      },
+    );
+  }
+
+  void _showModelDialog(ChatProvider chatProvider) {
+    final models = ApiConfig.getModelsForProvider(chatProvider.currentProvider);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Select ${ApiConfig.getProviderDisplayName(chatProvider.currentProvider)} Model'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: models.length,
+            itemBuilder: (context, index) {
+              final modelEntry = models.entries.elementAt(index);
+              final modelId = modelEntry.value;
+              final isSelected = chatProvider.currentModel == modelId;
+              
+              return ListTile(
+                title: Text(
+                  ApiConfig.getModelDisplayName(modelId),
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                trailing: isSelected ? const Icon(Icons.check) : null,
+                onTap: () {
+                  chatProvider.setModel(modelId);
+                  Navigator.pop(context);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NeoChat AI'),
+        title: Consumer<ChatProvider>(
+          builder: (context, chatProvider, child) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('NeoChat AI'),
+                Text(
+                  '${ApiConfig.getProviderDisplayName(chatProvider.currentProvider)} • ${ApiConfig.getModelDisplayName(chatProvider.currentModel)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w300,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -60,6 +184,15 @@ class _ChatScreenState extends State<ChatScreen> {
               return PopupMenuButton<String>(
                 onSelected: (value) {
                   switch (value) {
+                    case 'select_provider':
+                      _showProviderDialog(chatProvider);
+                      break;
+                    case 'select_model':
+                      _showModelDialog(chatProvider);
+                      break;
+                    case 'toggle_model':
+                      _toggleModel(chatProvider);
+                      break;
                     case 'clear':
                       chatProvider.clearMessages();
                       break;
@@ -69,6 +202,37 @@ class _ChatScreenState extends State<ChatScreen> {
                   }
                 },
                 itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'select_provider',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.cloud),
+                        const SizedBox(width: 8),
+                        Text('Change Provider (${ApiConfig.getProviderDisplayName(chatProvider.currentProvider)})'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'select_model',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.tune),
+                        const SizedBox(width: 8),
+                        const Text('Change Model'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'toggle_model',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.swap_horiz),
+                        const SizedBox(width: 8),
+                        Text('Quick Toggle'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
                   const PopupMenuItem(
                     value: 'clear',
                     child: Row(
