@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../widgets/message_bubble.dart';
+import '../../widgets/chat_composer.dart';
+import '../../widgets/typing_bubble.dart';
 import '../../config/api_config.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -12,16 +14,20 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final FocusNode _focusNode = FocusNode();
+  final ValueNotifier<String> _composerPrefill = ValueNotifier<String>('');
 
   @override
   void dispose() {
-    _messageController.dispose();
     _scrollController.dispose();
-    _focusNode.dispose();
+    _composerPrefill.dispose();
     super.dispose();
+  }
+
+  void _prefillComposer(String text) {
+    // Re-emit even when value is unchanged so a second tap still focuses.
+    _composerPrefill.value = '';
+    _composerPrefill.value = text;
   }
 
   void _scrollToBottom() {
@@ -34,16 +40,9 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _sendMessage() {
-    final message = _messageController.text.trim();
-    if (message.isNotEmpty) {
-      context.read<ChatProvider>().sendMessage(message);
-      _messageController.clear();
-      _focusNode.requestFocus();
-      
-      // Scroll to bottom after a short delay to allow for message to be added
-      Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
-    }
+  void _handleSend(String text) {
+    context.read<ChatProvider>().sendMessage(text);
+    Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
   }
 
   void _toggleModel(ChatProvider chatProvider) {
@@ -52,13 +51,6 @@ class _ChatScreenState extends State<ChatScreen> {
     final otherModel = quickToggleModels
         .firstWhere((model) => model != currentModel);
     chatProvider.setModel(otherModel);
-  }
-
-  String _getOtherModelName(String currentModel, ApiProvider currentProvider) {
-    final quickToggleModels = ApiConfig.getQuickToggleModelsForProvider(currentProvider);
-    final otherModel = quickToggleModels
-        .firstWhere((model) => model != currentModel);
-    return ApiConfig.getModelDisplayName(otherModel);
   }
 
   void _showProviderDialog(ChatProvider chatProvider) {
@@ -113,7 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _showModelDialog(ChatProvider chatProvider) {
     final models = ApiConfig.getModelsForProvider(chatProvider.currentProvider);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -127,7 +119,7 @@ class _ChatScreenState extends State<ChatScreen> {
               final modelEntry = models.entries.elementAt(index);
               final modelId = modelEntry.value;
               final isSelected = chatProvider.currentModel == modelId;
-              
+
               return ListTile(
                 title: Text(
                   ApiConfig.getModelDisplayName(modelId),
@@ -175,9 +167,6 @@ class _ChatScreenState extends State<ChatScreen> {
             );
           },
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           Consumer<ChatProvider>(
             builder: (context, chatProvider, child) {
@@ -262,20 +251,26 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          // Messages list
           Expanded(
             child: Consumer<ChatProvider>(
               builder: (context, chatProvider, child) {
-                if (chatProvider.messages.isEmpty) {
+                if (chatProvider.messages.isEmpty && !chatProvider.isLoading) {
                   return _buildEmptyState();
                 }
+
+                final messages = chatProvider.messages;
+                final showTyping = chatProvider.isLoading;
+                final itemCount = messages.length + (showTyping ? 1 : 0);
 
                 return ListView.builder(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
-                  itemCount: chatProvider.messages.length,
+                  itemCount: itemCount,
                   itemBuilder: (context, index) {
-                    final message = chatProvider.messages[index];
+                    if (showTyping && index == messages.length) {
+                      return const TypingBubble();
+                    }
+                    final message = messages[index];
                     return MessageBubble(
                       message: message,
                       onRetry: message.error != null
@@ -288,134 +283,130 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
-          // Error display
           Consumer<ChatProvider>(
             builder: (context, chatProvider, child) {
-              if (chatProvider.error != null) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade600),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          chatProvider.error!,
-                          style: TextStyle(color: Colors.red.shade700),
-                        ),
+              if (chatProvider.error == null) return const SizedBox.shrink();
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red.shade600),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        chatProvider.error!,
+                        style: TextStyle(color: Colors.red.shade700),
                       ),
-                      IconButton(
-                        onPressed: chatProvider.clearError,
-                        icon: const Icon(Icons.close),
-                        iconSize: 20,
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
+                    ),
+                    IconButton(
+                      onPressed: chatProvider.clearError,
+                      icon: const Icon(Icons.close),
+                      iconSize: 20,
+                    ),
+                  ],
+                ),
+              );
             },
           ),
 
-          // Message input
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    focusNode: _focusNode,
-                    decoration: InputDecoration(
-                      hintText: 'Type your message...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.surfaceVariant,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
-                    ),
-                    maxLines: null,
-                    textCapitalization: TextCapitalization.sentences,
-                    onSubmitted: (_) => _sendMessage(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Consumer<ChatProvider>(
-                  builder: (context, chatProvider, child) {
-                    return FloatingActionButton(
-                      onPressed: chatProvider.isLoading ? null : _sendMessage,
-                      mini: true,
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      child: chatProvider.isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
-                          : const Icon(Icons.send),
-                    );
-                  },
-                ),
-              ],
-            ),
+          Consumer<ChatProvider>(
+            builder: (context, chatProvider, child) {
+              return ChatComposer(
+                isSending: chatProvider.isLoading,
+                onSend: _handleSend,
+                prefill: _composerPrefill,
+              );
+            },
           ),
         ],
       ),
     );
   }
 
+  static const _suggestions = <_Suggestion>[
+    _Suggestion(
+      icon: Icons.code,
+      label: 'Explain a code snippet',
+      prompt: 'Explain what this code does, step by step:\n\n',
+    ),
+    _Suggestion(
+      icon: Icons.summarize_outlined,
+      label: 'Summarize text',
+      prompt: 'Summarize the following in 5 bullet points:\n\n',
+    ),
+    _Suggestion(
+      icon: Icons.lightbulb_outline,
+      label: 'Brainstorm ideas',
+      prompt: 'Brainstorm 10 creative ideas for ',
+    ),
+    _Suggestion(
+      icon: Icons.school_outlined,
+      label: 'Teach me something',
+      prompt: 'Teach me the basics of ',
+    ),
+  ];
+
   Widget _buildEmptyState() {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurface.withValues(alpha: 0.7);
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.chat_bubble_outline,
-            size: 80,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Start a conversation',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.auto_awesome,
+              size: 56,
+              color: theme.colorScheme.primary.withValues(alpha: 0.6),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Send a message to begin chatting with AI',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            const SizedBox(height: 16),
+            Text(
+              'How can I help today?',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 6),
+            Text(
+              'Pick a suggestion or type your own message',
+              style: theme.textTheme.bodyMedium?.copyWith(color: muted),
+            ),
+            const SizedBox(height: 24),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: _suggestions
+                  .map((s) => ActionChip(
+                        avatar: Icon(s.icon, size: 18),
+                        label: Text(s.label),
+                        onPressed: () => _prefillComposer(s.prompt),
+                      ))
+                  .toList(),
+            ),
+          ],
+        ),
       ),
     );
   }
+}
+
+class _Suggestion {
+  final IconData icon;
+  final String label;
+  final String prompt;
+  const _Suggestion({
+    required this.icon,
+    required this.label,
+    required this.prompt,
+  });
 }

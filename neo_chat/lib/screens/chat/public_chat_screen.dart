@@ -77,9 +77,6 @@ class _PublicChatScreenState extends State<PublicChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Public Chat'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           Consumer<PublicChatProvider>(
             builder: (context, provider, child) {

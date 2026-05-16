@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../models/chat_message.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -60,9 +61,7 @@ class MessageBubble extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (message.isLoading)
-                    _buildLoadingIndicator()
-                  else if (message.error != null)
+                  if (message.error != null)
                     _buildErrorContent(context)
                   else
                     _buildMessageContent(context, isUser),
@@ -97,32 +96,6 @@ class MessageBubble extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _buildLoadingIndicator() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              Colors.grey.shade600,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Thinking...',
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ],
     );
   }
 
@@ -170,15 +143,57 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildMessageContent(BuildContext context, bool isUser) {
+    final theme = Theme.of(context);
+    final fg = isUser ? Colors.white : theme.colorScheme.onSurfaceVariant;
+
+    if (isUser) {
+      return GestureDetector(
+        onLongPress: () => _copyToClipboard(context),
+        child: SelectableText(
+          message.content,
+          style: TextStyle(color: fg, fontSize: 16),
+        ),
+      );
+    }
+
+    final codeBg = theme.colorScheme.surface;
     return GestureDetector(
       onLongPress: () => _copyToClipboard(context),
-      child: SelectableText(
-        message.content,
-        style: TextStyle(
-          color: isUser
-              ? Colors.white
-              : Theme.of(context).colorScheme.onSurfaceVariant,
-          fontSize: 16,
+      child: MarkdownBody(
+        data: message.content,
+        selectable: true,
+        onTapLink: (text, href, title) {
+          if (href != null) Clipboard.setData(ClipboardData(text: href));
+        },
+        styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
+          p: TextStyle(color: fg, fontSize: 16, height: 1.4),
+          listBullet: TextStyle(color: fg, fontSize: 16),
+          strong: TextStyle(color: fg, fontWeight: FontWeight.bold),
+          em: TextStyle(color: fg, fontStyle: FontStyle.italic),
+          a: TextStyle(
+            color: theme.colorScheme.primary,
+            decoration: TextDecoration.underline,
+          ),
+          code: TextStyle(
+            color: fg,
+            fontFamily: 'monospace',
+            fontSize: 14,
+            backgroundColor: codeBg,
+          ),
+          codeblockDecoration: BoxDecoration(
+            color: codeBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          codeblockPadding: const EdgeInsets.all(12),
+          blockquoteDecoration: BoxDecoration(
+            border: Border(
+              left: BorderSide(color: theme.colorScheme.primary, width: 3),
+            ),
+          ),
+          blockquotePadding: const EdgeInsets.only(left: 12),
+          h1: TextStyle(color: fg, fontSize: 22, fontWeight: FontWeight.bold),
+          h2: TextStyle(color: fg, fontSize: 20, fontWeight: FontWeight.bold),
+          h3: TextStyle(color: fg, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );

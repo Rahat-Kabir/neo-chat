@@ -147,19 +147,14 @@ class ChatProvider extends ChangeNotifier {
 
   // Add a message to the chat and save to Firestore
   Future<void> addMessage(ChatMessage message) async {
-    // Add to local list immediately for responsive UI
     _messages.add(message);
     notifyListeners();
 
-    // Save to Firestore (don't save loading messages)
-    if (!message.isLoading) {
-      try {
-        await _firestoreService.saveMessage(message);
-      } catch (e) {
-        // If saving fails, show error but keep message in local list
-        _error = 'Failed to save message: $e';
-        notifyListeners();
-      }
+    try {
+      await _firestoreService.saveMessage(message);
+    } catch (e) {
+      _error = 'Failed to save message: $e';
+      notifyListeners();
     }
   }
 
@@ -172,23 +167,20 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
-  // Remove a message (for loading messages, don't delete from Firestore)
   Future<void> removeMessage(String messageId) async {
-    final message = _messages.firstWhere((msg) => msg.id == messageId, orElse: () => ChatMessage.user(content: ''));
+    final index = _messages.indexWhere((msg) => msg.id == messageId);
+    if (index == -1) return;
+    final message = _messages[index];
 
-    _messages.removeWhere((msg) => msg.id == messageId);
+    _messages.removeAt(index);
     notifyListeners();
 
-    // Only delete from Firestore if it's not a loading message
-    if (message.id.isNotEmpty && !message.isLoading) {
-      try {
-        await _firestoreService.deleteMessage(messageId);
-      } catch (e) {
-        // If deletion fails, add the message back
-        _messages.add(message);
-        _error = 'Failed to delete message: $e';
-        notifyListeners();
-      }
+    try {
+      await _firestoreService.deleteMessage(messageId);
+    } catch (e) {
+      _messages.insert(index, message);
+      _error = 'Failed to delete message: $e';
+      notifyListeners();
     }
   }
 
@@ -199,34 +191,22 @@ class ChatProvider extends ChangeNotifier {
     // Clear any previous errors
     _error = null;
 
-    // Add user message
     final userMessage = ChatMessage.user(content: content.trim());
     await addMessage(userMessage);
-
-    // Add loading message for AI response (don't save to Firestore)
-    final loadingMessage = ChatMessage.loading();
-    _messages.add(loadingMessage);
-    notifyListeners();
 
     _isLoading = true;
     notifyListeners();
 
     try {
-      // Get AI response using the current provider
       final response = await _aiService.sendMessage(
         provider: _currentProvider,
-        messages: _messages.where((msg) => !msg.isLoading).toList(),
+        messages: _messages,
         model: _currentModel,
       );
 
-      // Remove loading message and add actual response
-      _messages.removeWhere((msg) => msg.id == loadingMessage.id);
       final assistantMessage = ChatMessage.assistant(content: response);
       await addMessage(assistantMessage);
-
     } catch (e) {
-      // Remove loading message and add error message
-      _messages.removeWhere((msg) => msg.id == loadingMessage.id);
       final errorMessage = ChatMessage.assistant(
         content: 'Sorry, I encountered an error. Please try again.',
         error: e.toString(),
@@ -331,7 +311,6 @@ class ChatProvider extends ChangeNotifier {
   @override
   void dispose() {
     _messagesSubscription?.cancel();
-    _aiService.dispose();
     super.dispose();
   }
 }
