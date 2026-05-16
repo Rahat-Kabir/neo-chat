@@ -1,63 +1,36 @@
 import '../config/api_config.dart';
 import '../models/chat_message.dart';
-import 'openrouter_service.dart';
-import 'openai_service.dart';
+import 'openai_compatible_service.dart';
 
 class AIService {
   static final AIService _instance = AIService._internal();
   factory AIService() => _instance;
   AIService._internal();
 
-  final OpenRouterService _openRouterService = OpenRouterService();
-  final OpenAIService _openAIService = OpenAIService();
+  final OpenAICompatibleService _client = OpenAICompatibleService();
 
-  /// Send a chat completion request using the specified provider
   Future<String> sendMessage({
     required ApiProvider provider,
     required List<ChatMessage> messages,
     String? model,
     double? temperature,
     int? maxTokens,
-  }) async {
-    switch (provider) {
-      case ApiProvider.openRouter:
-        return await _openRouterService.sendMessage(
-          messages: messages,
-          model: model,
-          temperature: temperature,
-          maxTokens: maxTokens,
-        );
-      case ApiProvider.openAI:
-        return await _openAIService.sendMessage(
-          messages: messages,
-          model: model,
-          temperature: temperature,
-          maxTokens: maxTokens,
-        );
-    }
+  }) {
+    return _client.sendMessage(
+      provider: provider,
+      messages: messages,
+      model: model,
+      temperature: temperature,
+      maxTokens: maxTokens,
+    );
   }
 
-  /// Get available models for the specified provider
-  Future<List<String>> getAvailableModels(ApiProvider provider) async {
-    switch (provider) {
-      case ApiProvider.openRouter:
-        return await _openRouterService.getAvailableModels();
-      case ApiProvider.openAI:
-        return await _openAIService.getAvailableModels();
-    }
-  }
+  Future<List<String>> getAvailableModels(ApiProvider provider) =>
+      _client.getAvailableModels(provider);
 
-  /// Test API connection for the specified provider
-  Future<bool> testConnection(ApiProvider provider) async {
-    switch (provider) {
-      case ApiProvider.openRouter:
-        return await _openRouterService.testConnection();
-      case ApiProvider.openAI:
-        return await _openAIService.testConnection();
-    }
-  }
+  Future<bool> testConnection(ApiProvider provider) =>
+      _client.testConnection(provider);
 
-  /// Get default model for the specified provider
   String getDefaultModel(ApiProvider provider) {
     switch (provider) {
       case ApiProvider.openRouter:
@@ -67,9 +40,5 @@ class AIService {
     }
   }
 
-  /// Dispose resources
-  void dispose() {
-    _openRouterService.dispose();
-    _openAIService.dispose();
-  }
+  void dispose() => _client.dispose();
 }

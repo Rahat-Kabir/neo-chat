@@ -3,11 +3,12 @@ import 'dart:async';
 import '../models/public_chat_message.dart';
 import '../models/chat_message.dart';
 import '../services/public_chat_service.dart';
-import '../services/openrouter_service.dart';
+import '../services/ai_service.dart';
+import '../config/api_config.dart';
 
 class PublicChatProvider extends ChangeNotifier {
   final PublicChatService _publicChatService = PublicChatService();
-  final OpenRouterService _openRouterService = OpenRouterService();
+  final AIService _aiService = AIService();
   final List<PublicChatMessage> _messages = [];
   bool _isLoading = false;
   String? _error;
@@ -97,18 +98,18 @@ class PublicChatProvider extends ChangeNotifier {
 
     try {
       // Get recent messages for context (last 5 user messages)
-      final recentMessages = await _publicChatService.getRecentMessages(limit: 10);
-      final contextMessages = _publicChatService.getContextMessages(recentMessages, limit: 5);
-
-      // Convert to format expected by OpenRouter API
-      final apiMessages = contextMessages.map((msg) => msg.toJson()).toList();
+      final recentMessages =
+          await _publicChatService.getRecentMessages(limit: 10);
+      final contextMessages =
+          _publicChatService.getContextMessages(recentMessages, limit: 5);
 
       // Get AI response
-      final response = await _openRouterService.sendMessage(
-        messages: contextMessages.map((msg) => 
-          ChatMessage.user(content: msg.content, id: msg.id)
-        ).toList(),
-        model: 'deepseek/deepseek-r1-0528:free',
+      final response = await _aiService.sendMessage(
+        provider: ApiProvider.openRouter,
+        messages: contextMessages
+            .map((msg) => ChatMessage.user(content: msg.content, id: msg.id))
+            .toList(),
+        model: ApiConfig.defaultModel,
       );
 
       // Remove loading message from local list
@@ -204,7 +205,6 @@ class PublicChatProvider extends ChangeNotifier {
   @override
   void dispose() {
     _messagesSubscription?.cancel();
-    _openRouterService.dispose();
     super.dispose();
   }
 }
