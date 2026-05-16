@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../config/api_config.dart';
 import '../models/chat_message.dart';
 
 class FirestoreService {
@@ -24,7 +25,7 @@ class FirestoreService {
         'createdAt': FieldValue.serverTimestamp(),
         'lastActive': FieldValue.serverTimestamp(),
         'messageCount': 0,
-        'preferredModel': 'deepseek/deepseek-r1-0528:free',
+        'preferredModel': ApiConfig.defaultModel,
       }, SetOptions(merge: true));
     } catch (e) {
       throw Exception('Failed to create user profile: $e');
@@ -197,7 +198,7 @@ class FirestoreService {
         'aiMessages': aiMessages,
         'joinedAt': userData['createdAt'],
         'lastActive': userData['lastActive'],
-        'preferredModel': userData['preferredModel'] ?? 'deepseek/deepseek-r1-0528:free',
+        'preferredModel': userData['preferredModel'] ?? ApiConfig.defaultModel,
       };
     } catch (e) {
       throw Exception('Failed to get chat stats: $e');

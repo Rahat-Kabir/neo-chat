@@ -1,26 +1,24 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "Setting up API configuration for NeoChat..."
+env_file="../env.json"
+
+echo "Setting up API environment file for NeoChat..."
 echo
 
-if [ ! -f "lib/config/api_config.dart" ]; then
-    echo "Creating api_config.dart from template..."
-    cp "lib/config/api_config.dart.template" "lib/config/api_config.dart"
-    echo
-    echo "✅ API configuration file created!"
-    echo
-    echo "⚠️  IMPORTANT: Please edit lib/config/api_config.dart and replace 'your-openrouter-api-key-here' with your actual OpenRouter API key."
-    echo
-    echo "📝 To get your OpenRouter API key:"
-    echo "   1. Go to https://openrouter.ai/"
-    echo "   2. Sign up or log in"
-    echo "   3. Go to API Keys section"
-    echo "   4. Create a new API key"
-    echo "   5. Copy the key and paste it in lib/config/api_config.dart"
-    echo
+if [ ! -f "$env_file" ]; then
+  cat > "$env_file" <<'JSON'
+{
+  "OPENROUTER_API_KEY": "",
+  "OPENAI_API_KEY": ""
+}
+JSON
+  echo "Created $env_file."
+  echo "Edit it with your OpenRouter and/or OpenAI API key before running AI chat."
 else
-    echo "✅ API configuration file already exists."
-    echo
+  echo "$env_file already exists."
 fi
 
-echo "Setup complete! You can now run the app with: flutter run"
+echo
+echo "Run from neo_chat with:"
+echo "flutter run -d chrome --dart-define-from-file=../env.json"
