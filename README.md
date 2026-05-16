@@ -22,7 +22,7 @@
 - **AI Chat Interface** - Modern chat UI with AI conversation support
 - **Real-time Messaging** - Firebase Firestore integration with message persistence
 - **Group Chat Rooms** - Multi-user chat rooms with real-time synchronization
-- **Multi-Model AI Support** - Integration with OpenRouter, OpenAI, and Anthropic APIs
+- **Multi-Model AI Support** - Direct integration with OpenRouter and OpenAI; Anthropic Claude models accessible via OpenRouter
 - **Cross-platform Support** - Works seamlessly on iOS, Android, Web, and Desktop
 
 ### Technical Features
@@ -40,7 +40,8 @@
 - Dart SDK
 - Android Studio / VS Code
 - Firebase account
-- OpenRouter/OpenAI API key (for AI features)
+- OpenRouter and/or OpenAI API key (for AI features)
+- Firebase CLI + FlutterFire CLI (`npm install -g firebase-tools` and `dart pub global activate flutterfire_cli`)
 
 ### Installation
 
@@ -55,42 +56,59 @@
    flutter pub get
    ```
 
-3. **Configure Firebase**
-   - Follow the instructions in [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
-   - Copy `lib/firebase_options.dart.template` to `lib/firebase_options.dart`
-   - Update with your Firebase configuration
-
-4. **Configure API Keys**
+3. **Configure Firebase** — generates `lib/firebase_options.dart` (gitignored)
    ```bash
-   # Windows
-   setup_api_config.bat
-
-   # Linux/Mac
-   chmod +x setup_api_config.sh
-   ./setup_api_config.sh
+   firebase login
+   flutterfire configure
    ```
-   - Edit `lib/config/api_config.dart` and add your API keys
-   - **Never commit API keys to version control**
+   Pick or create a Firebase project, then select Android / iOS / Web / Windows / macOS as needed. See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for details.
 
-5. **Deploy Firestore Security Rules**
+4. **Configure API Keys** — create `env.json` at the **repo root** (gitignored, never committed):
+   ```json
+   {
+     "OPENROUTER_API_KEY": "sk-or-v1-...",
+     "OPENAI_API_KEY": ""
+   }
+   ```
+   Leave a key empty if you don't use that provider. Keys are injected at build time via `--dart-define-from-file` (see commands below) — they are **not** stored in `api_config.dart`.
+
+5. **Deploy Firestore Security Rules** (from repo root)
    ```bash
    firebase deploy --only firestore:rules
    ```
 
-6. **Run the application**
+6. **Run the application** — from `neo_chat/`, always pass the env file:
    ```bash
    # Web
-   flutter run -d chrome
+   flutter run -d chrome   --dart-define-from-file=../env.json
 
-   # Android
-   flutter run -d android
+   # Android (device/emulator connected)
+   flutter run -d android  --dart-define-from-file=../env.json
 
    # iOS
-   flutter run -d ios
+   flutter run -d ios      --dart-define-from-file=../env.json
 
-   # Desktop (Windows/macOS/Linux)
-   flutter run -d windows
+   # Desktop (Windows / macOS / Linux)
+   flutter run -d windows  --dart-define-from-file=../env.json
    ```
+   VS Code users: the [.vscode/launch.json](neo_chat/.vscode/launch.json) configurations pass the flag automatically — just hit **F5**.
+
+### Build a Release APK
+
+From `neo_chat/`:
+```bash
+# Fat APK (single file, all CPU architectures)
+flutter build apk --release --dart-define-from-file=../env.json
+
+# Split per ABI (smaller per-device APKs)
+flutter build apk --release --split-per-abi --dart-define-from-file=../env.json
+
+# Play Store bundle
+flutter build appbundle --release --dart-define-from-file=../env.json
+```
+Output: `build/app/outputs/flutter-apk/app-release.apk`
+
+> ⚠️ API keys are compiled into the APK and can be extracted by decompilation. For personal builds this is fine; for public distribution, proxy AI calls through a backend instead of shipping keys in the client.
 
 ## 🏗️ Project Structure
 
@@ -114,15 +132,16 @@ neo-chat/
 
 ## 🤖 AI Integration
 
-NeoChat supports multiple AI providers:
+NeoChat dispatches through a single OpenAI-compatible client ([lib/services/openai_compatible_service.dart](neo_chat/lib/services/openai_compatible_service.dart)) keyed by an `ApiProvider` enum. Currently wired:
 
-- **OpenRouter** - Access to DeepSeek R1 and other open-source models
-- **OpenAI** - GPT-3.5 Turbo and GPT-4 support
-- **Anthropic** - Claude models integration
+- **OpenRouter** — GPT-OSS 20B (free), Llama 3.3 70B (free), Gemini 2.5 Flash, Claude Haiku 4.5, Claude Sonnet 4.5, GPT-4o, GPT-4.1
+- **OpenAI** (direct) — GPT-4o, GPT-4o mini, GPT-4.1, GPT-4.1 mini
+- **Anthropic Claude** — reached via OpenRouter. There is no direct Anthropic Messages-API client yet.
+
+The model list lives in [lib/config/api_config.dart](neo_chat/lib/config/api_config.dart); to add a new OpenAI-compatible provider (Groq, Together, Mistral, …) just extend the enum and add cases — no new service file needed.
 
 ### Features
 - Context-aware conversations
-- Real-time streaming responses
 - Multi-model selection
 - Conversation history persistence
 
