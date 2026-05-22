@@ -7,6 +7,19 @@
 ![Firebase](https://img.shields.io/badge/Firebase-039BE5?style=for-the-badge&logo=Firebase&logoColor=white)
 ![Material Design](https://img.shields.io/badge/Material%20Design-757575?style=for-the-badge&logo=material-design&logoColor=white)
 
+## Quick Start
+
+```bash
+git clone https://github.com/Rahat-Kabir/neo-chat.git
+cd neo-chat/neo_chat
+flutter pub get
+flutterfire configure
+setup_api_config.bat
+flutter run -d chrome --dart-define-from-file=../env.json
+```
+
+On Linux/macOS, run `chmod +x setup_api_config.sh && ./setup_api_config.sh` from `neo_chat/` instead of the `.bat` script.
+
 ## 📸 Screenshots
 
 <p align="center">
